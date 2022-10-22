@@ -11,7 +11,11 @@ ThisBuild / tlSonatypeUseLegacyHost := false
 ThisBuild / tlSitePublishBranch := Some("main")
 ThisBuild / scalaVersion := "3.1.3"
 
-lazy val root = tlCrossRootProject.aggregate(core)
+lazy val root = tlCrossRootProject
+  .aggregate(core, docs)
+  .settings(
+    name := "chronicle"
+  )
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
@@ -25,4 +29,20 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     )
   )
 
-lazy val docs = project.in(file("site")).enablePlugins(TypelevelSitePlugin)
+
+import laika.rewrite.link.ApiLinks
+import laika.rewrite.link.LinkConfig
+
+lazy val docs = project
+  .in(file("site"))
+  .enablePlugins(TypelevelSitePlugin)
+  .settings(
+    tlSiteHeliumConfig := SiteConfigs(mdocVariables.value),
+    tlSiteRelatedProjects := Seq(
+      "Edomata" -> url("https://edomata.ir"),
+      TypelevelProject.Cats,
+      TypelevelProject.CatsEffect,
+      TypelevelProject.Fs2
+    ),
+    // laikaIncludeAPI := true
+  )
