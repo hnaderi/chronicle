@@ -1,15 +1,39 @@
-ThisBuild / tlBaseVersion := "0.0"
+lazy val scala3 = "3.1.3"
+val PrimaryJava = JavaSpec.temurin("8")
+val LTSJava = JavaSpec.temurin("17")
 
-ThisBuild / organization := "dev.hnaderi"
-ThisBuild / organizationName := "Hossein Naderi"
-ThisBuild / startYear := Some(2022)
-ThisBuild / licenses := Seq(License.Apache2)
-ThisBuild / developers := List(
-  tlGitHubDev("hnaderi", "Hossein Naderi")
+inThisBuild(
+  List(
+    tlBaseVersion := "0.0",
+    scalaVersion := scala3,
+    fork := true,
+    Test / fork := false,
+    organization := "dev.hnaderi",
+    organizationName := "Hossein Naderi",
+    startYear := Some(2022),
+    tlSonatypeUseLegacyHost := false,
+    tlCiReleaseBranches := Seq("main"),
+    tlSitePublishBranch := Some("main"),
+    githubWorkflowJavaVersions := Seq(PrimaryJava, LTSJava),
+    githubWorkflowBuildPreamble ++= dockerComposeUp,
+    licenses := Seq(License.Apache2),
+    developers := List(
+      Developer(
+        id = "hnaderi",
+        name = "Hossein Naderi",
+        email = "mail@hnaderi.dev",
+        url = url("https://hnaderi.dev")
+      )
+    )
+  )
 )
-ThisBuild / tlSonatypeUseLegacyHost := false
-ThisBuild / tlSitePublishBranch := Some("main")
-ThisBuild / scalaVersion := "3.1.3"
+
+lazy val dockerComposeUp = Seq(
+  WorkflowStep.Run(
+    commands = List("docker-compose up -d"),
+    name = Some("Start up Postgres")
+  )
+)
 
 lazy val root = tlCrossRootProject
   .aggregate(core, docs)
