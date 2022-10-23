@@ -12,7 +12,7 @@ inThisBuild(
     organizationName := "Hossein Naderi",
     startYear := Some(2022),
     tlSonatypeUseLegacyHost := false,
-    tlCiReleaseBranches := Seq("main"),
+    tlCiReleaseBranches := Nil, // Seq("main"),
     tlSitePublishBranch := Some("main"),
     githubWorkflowJavaVersions := Seq(PrimaryJava, LTSJava),
     githubWorkflowBuildPreamble ++= dockerComposeUp,
@@ -24,7 +24,8 @@ inThisBuild(
         email = "mail@hnaderi.dev",
         url = url("https://hnaderi.dev")
       )
-    )
+    ),
+    resolvers ++= Resolver.sonatypeOssRepos("snapshots")
   )
 )
 
@@ -47,12 +48,11 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .settings(
     name := "chronicle",
     libraryDependencies ++= Seq(
-      "dev.hnaderi" %%% "edomata-sql-backend" % "0.6.0",
+      "dev.hnaderi" %%% "edomata-backend" % "0.7-c1c6774-SNAPSHOT",
       "org.scalameta" %%% "munit" % "0.7.29" % Test,
       "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test
     )
   )
-
 
 import laika.rewrite.link.ApiLinks
 import laika.rewrite.link.LinkConfig
@@ -67,6 +67,6 @@ lazy val docs = project
       TypelevelProject.Cats,
       TypelevelProject.CatsEffect,
       TypelevelProject.Fs2
-    ),
+    )
     // laikaIncludeAPI := true
   )
