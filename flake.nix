@@ -12,16 +12,18 @@
           inherit system;
           overlays = [ typelevel-nix.overlay ];
         };
-      in
-      {
+      in {
         devShell = pkgs.devshell.mkShell {
           imports = [ typelevel-nix.typelevelShell ];
           name = "chronicle-shell";
           typelevelShell = {
             jdk.package = pkgs.jdk8;
             nodejs.enable = true;
+            native = {
+              enable = true;
+              libraries = with pkgs; [ s2n utf8proc openssl ];
+            };
           };
         };
-      }
-    );
+      });
 }

@@ -1,4 +1,6 @@
-lazy val scala3 = "3.1.3"
+import sbtcrossproject.CrossProject
+
+lazy val scala3 = "3.2.2"
 val PrimaryJava = JavaSpec.temurin("8")
 val LTSJava = JavaSpec.temurin("17")
 
@@ -36,23 +38,51 @@ lazy val dockerComposeUp = Seq(
   )
 )
 
+def module(mname: String): CrossProject => CrossProject =
+  _.in(file(s"modules/$mname"))
+    .settings(
+      name := s"module-$mname",
+      libraryDependencies ++= Seq(
+        "org.scalameta" %%% "munit" % "1.0.0-M7" % Test,
+        "org.scalameta" %%% "munit-scalacheck" % "1.0.0-M7" % Test
+      ),
+      moduleName := s"chronicle-$mname"
+    )
+
 lazy val root = tlCrossRootProject
   .aggregate(core, docs)
   .settings(
     name := "chronicle"
   )
 
-lazy val core = crossProject(JVMPlatform, JSPlatform)
-  .crossType(CrossType.Pure)
-  .in(file("core"))
-  .settings(
-    name := "chronicle",
-    libraryDependencies ++= Seq(
-      "dev.hnaderi" %%% "edomata-backend" % "0.7-c1c6774-SNAPSHOT",
-      "org.scalameta" %%% "munit" % "0.7.29" % Test,
-      "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test
+lazy val core = module("core") {
+  crossProject(JVMPlatform, JSPlatform, NativePlatform)
+    .crossType(CrossType.Pure)
+    .settings(
+      libraryDependencies ++= Seq(
+        "dev.hnaderi" %%% "edomata-backend" % "0.9.1",
+        "dev.hnaderi" %%% "named-codec" % "0.1.0",
+        "org.typelevel" %%% "munit-cats-effect" % "2.0.0-M3" % Test
+      )
     )
-  )
+}
+
+lazy val skunk = module("skunk") {
+  crossProject(JVMPlatform, JSPlatform, NativePlatform)
+    .crossType(CrossType.Pure)
+    .settings(
+      description := "Skunk based backend for edomata",
+      libraryDependencies ++= Seq(
+        "org.tpolecat" %%% "skunk-core" % Versions.skunk,
+        "org.typelevel" %%% "munit-cats-effect-3" % Versions.CatsEffectMunit % Test
+      )
+    )
+    .jsSettings(
+      Test / scalaJSLinkerConfig ~= (_.withModuleKind(
+        ModuleKind.CommonJSModule
+      ))
+    )
+}
 
 import laika.rewrite.link.ApiLinks
 import laika.rewrite.link.LinkConfig
